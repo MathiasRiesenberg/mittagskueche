@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mittagsk&uuml;che">
+<meta name="theme-color" content="#0f0f0f">
+<title>Mittagsk&uuml;che</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0f0f0f;--bg2:#161616;--bg3:#1f1f1f;--line:#2a2a2a;--txt:#f0ece3;--mut:#888;--gold:#e8c87a;--red:#f87171;--grn:#86c98a}
+body{background:var(--bg);color:var(--txt);font-family:Georgia,'Times New Roman',serif;min-height:100vh}
+button,select,input,textarea{font-family:inherit;color:inherit}
+.sans{font-family:-apple-system,system-ui,sans-serif}
+#app{display:flex;flex-direction:column;min-height:100vh;padding-bottom:78px}
+header{padding:18px 18px 0;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:30}
+.htop{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.htop h1{font-size:21px;font-weight:700;letter-spacing:-.5px}
+.htop .em{font-size:25px}
+main{flex:1;padding:18px 14px 24px}
+.view{display:none}.view.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#121212;border-top:1px solid var(--line);z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;padding:11px 4px 13px;cursor:pointer;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:3px;font-family:-apple-system,sans-serif;position:relative}
+nav button .ico{font-size:19px}
+nav button.active{color:var(--gold)}
+.nbadge{position:absolute;top:6px;margin-left:20px;background:var(--gold);color:#000;border-radius:9px;font-size:9px;font-weight:800;padding:0 5px;min-width:15px;text-align:center}
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;z-index:999;opacity:0;pointer-events:none;transition:opacity .2s;font-family:-apple-system,sans-serif}
+#toast.show{opacity:1}
+.lbl{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin:18px 0 9px;font-family:-apple-system,sans-serif}
+.lbl:first-child{margin-top:0}
+.wsum{background:linear-gradient(135deg,#1c1a14,#161616);border:1px solid #2e2a1f;border-radius:16px;padding:15px 16px;margin-bottom:6px}
+.wsum .t{font-size:12px;color:var(--mut);font-family:-apple-system,sans-serif;margin-bottom:10px;display:flex;justify-content:space-between}
+.wsum .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.nstat{text-align:center}
+.nstat .v{font-size:18px;font-weight:700;font-family:-apple-system,sans-serif}
+.nstat .k{font-size:10px;color:var(--mut);font-family:-apple-system,sans-serif;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.nstat .v.kc{color:var(--gold)}
+.day{margin-bottom:10px}
+.dname{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-family:-apple-system,sans-serif}
+.slot{width:100%;background:#141414;border:1px dashed #2c2c2c;border-radius:13px;padding:14px;cursor:pointer;color:inherit;display:flex;align-items:center;gap:13px;text-align:left;min-height:64px}
+.slot.full{background:var(--bg2);border:1px solid #2c2c2c}
+.slot .pl{font-size:24px;color:#3a3a3a;width:100%;text-align:center}
+.slot .em{font-size:30px;flex-shrink:0}
+.slot .info{flex:1;min-width:0}
+.slot .nm{font-weight:600;font-size:15px;line-height:1.25}
+.slot .mt{font-size:11px;color:var(--mut);font-family:-apple-system,sans-serif;margin-top:3px;display:flex;gap:9px;flex-wrap:wrap}
+.slot .mt b{color:var(--gold);font-weight:700}
+.rcard{width:100%;background:var(--bg2);border:1px solid #242424;border-radius:13px;padding:13px;margin-bottom:8px;cursor:pointer;color:inherit;display:flex;align-items:center;gap:12px;text-align:left}
+.rcard .em{font-size:27px;flex-shrink:0;width:34px;text-align:center}
+.rcard .thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--bg3)}
+.rcard .info{flex:1;min-width:0}
+.rcard .nm{font-weight:600;font-size:14.5px}
+.rcard .mt{font-size:11px;color:var(--mut);font-family:-apple-system,sans-serif;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.rcard .mt b{color:var(--gold);font-weight:700}
+.tagmini{font-size:9px;background:var(--bg3);color:var(--mut);border-radius:5px;padding:1px 5px;font-family:-apple-system,sans-serif;letter-spacing:.3px}
+.star{background:none;border:none;font-size:18px;cursor:pointer;color:#3a3a3a;padding:4px}
+.star.on{color:var(--gold)}
+.search{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:14px;outline:none;margin-bottom:10px}
+.search::placeholder{color:#555}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.chip{flex-shrink:0;background:var(--bg3);border:1px solid var(--line);border-radius:20px;padding:6px 13px;font-size:12px;cursor:pointer;color:var(--mut);font-family:-apple-system,sans-serif;white-space:nowrap}
+.chip.on{background:var(--gold);color:#000;border-color:var(--gold);font-weight:700}
+.chip.prot.on{background:var(--grn);border-color:var(--grn)}
+.scat{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:1px;text-transform:uppercase;margin:16px 0 7px;font-family:-apple-system,sans-serif}
+.sitem{display:flex;align-items:center;gap:12px;padding:11px 13px;background:var(--bg2);border-radius:10px;margin-bottom:5px;cursor:pointer}
+.sitem.ck{opacity:.4}
+.cb{width:21px;height:21px;border-radius:6px;border:2px solid #333;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#000;font-weight:800}
+.cb.on{background:var(--gold);border-color:var(--gold)}
+.sname{flex:1;font-size:14px}.sname.cr{text-decoration:line-through;color:#555}
+.samt{font-size:13px;color:var(--gold);font-weight:700;font-family:-apple-system,sans-serif}
+.empty{text-align:center;padding:48px 20px;color:#555}
+.empty .e{font-size:40px;margin-bottom:12px}
+.empty .sans{font-size:13px;line-height:1.6}
+.btn{background:var(--gold);color:#000;border:none;border-radius:11px;padding:13px;font-weight:700;font-size:14px;cursor:pointer;width:100%;font-family:-apple-system,sans-serif}
+.btn.sm{width:auto;padding:7px 14px;border-radius:20px;font-size:12px}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--mut)}
+.btn.danger{background:none;border:1px solid #3a2424;color:var(--red)}
+.btn.add{background:none;border:1px dashed var(--gold);color:var(--gold);margin-bottom:14px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:flex-end;z-index:100}
+.ov.show{display:flex}
+.sheet{background:var(--bg2);border-radius:22px 22px 0 0;width:100%;max-height:94vh;overflow-y:auto;padding:20px 18px calc(28px + env(safe-area-inset-bottom));animation:up .28s}
+@keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.mhead{display:flex;align-items:flex-start;gap:12px;margin-bottom:4px}
+.mhead .em{font-size:38px}
+.mhead .ttl{flex:1}
+.mhead h2{font-size:20px;font-weight:700;line-height:1.2}
+.mhead .sub{font-size:12px;color:var(--mut);font-family:-apple-system,sans-serif;margin-top:4px}
+.mclose{background:none;border:none;color:var(--mut);font-size:24px;cursor:pointer;line-height:1}
+.port{display:flex;align-items:center;gap:14px;background:var(--bg3);border-radius:13px;padding:10px 14px;margin:16px 0}
+.port .pl{font-size:13px;color:var(--mut);font-family:-apple-system,sans-serif;flex:1}
+.port .pl b{color:var(--txt);font-size:15px}
+.pbtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--gold);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pnum{font-size:18px;font-weight:700;min-width:28px;text-align:center;font-family:-apple-system,sans-serif}
+.nutri{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
+.ncard{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:11px 6px;text-align:center}
+.ncard .v{font-size:17px;font-weight:700;font-family:-apple-system,sans-serif}
+.ncard .v.kc{color:var(--gold)}
+.ncard .k{font-size:9.5px;color:var(--mut);font-family:-apple-system,sans-serif;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.nnote{font-size:10.5px;color:#666;font-family:-apple-system,sans-serif;text-align:center;margin:7px 0 4px}
+.ilist{list-style:none;margin:4px 0}
+.ilist li{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid #1e1e1e;font-size:14.5px}
+.ilist li .a{color:var(--gold);font-weight:700;font-family:-apple-system,sans-serif;white-space:nowrap;padding-left:10px}
+.steps{list-style:none;counter-reset:s;margin:4px 0}
+.steps li{counter-increment:s;display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #1e1e1e;font-size:14.5px;line-height:1.5}
+.steps li::before{content:counter(s);flex-shrink:0;width:26px;height:26px;background:var(--gold);color:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;font-family:-apple-system,sans-serif}
+.daypick{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:6px 0 14px}
+.daypick button{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:11px 4px;cursor:pointer;font-size:13px;font-family:-apple-system,sans-serif}
+.daypick button.set{border-color:var(--gold);color:var(--gold)}
+.act{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+/* photo */
+.rphoto{width:100%;border-radius:14px;overflow:hidden;margin-bottom:14px;background:var(--bg3)}
+.rphoto img{width:100%;display:block;max-height:260px;object-fit:cover}
+.rphoto.empty{border:1px dashed var(--line);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--mut);cursor:pointer;font-family:-apple-system,sans-serif;font-size:13px}
+.rphoto .pbar{display:flex;gap:8px;padding:8px}
+.rphoto .pbar .btn{flex:1}
+/* editor */
+.efld{margin-bottom:13px}
+.efld>label{display:block;font-size:12px;color:var(--mut);font-family:-apple-system,sans-serif;margin-bottom:6px}
+.einp{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;outline:none}
+.einp:focus{border-color:var(--gold)}
+.erow2{display:flex;gap:10px}
+.eing{display:flex;gap:6px;margin-bottom:7px;align-items:center}
+.eing .ei-name{flex:1}.eing .ei-amt{width:76px}.eing .ei-unit{width:70px}
+.eing textarea.estep{flex:1;min-height:52px;resize:vertical;line-height:1.4}
+.ex{background:none;border:none;color:var(--red);font-size:22px;cursor:pointer;padding:0 4px;flex-shrink:0}
+.addrow{background:none;border:1px dashed var(--line);color:var(--gold);border-radius:10px;padding:10px;width:100%;cursor:pointer;font-family:-apple-system,sans-serif;font-size:13px;margin-top:2px}
+.echk{display:flex;align-items:center;gap:9px;font-family:-apple-system,sans-serif;font-size:13.5px;margin-bottom:6px}
+.echk input{width:18px;height:18px;accent-color:var(--gold)}
+.emoji-quick{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}
+.emoji-quick span{font-size:21px;cursor:pointer;padding:5px;border-radius:9px;background:var(--bg3)}
+#cook{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;padding:20px 22px calc(20px + env(safe-area-inset-bottom))}
+#cook.show{display:flex}
+#cook .ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#cook .ch h3{font-size:16px}
+#cook .prog{font-size:12px;color:var(--mut);font-family:-apple-system,sans-serif}
+#cook .body{flex:1;display:flex;flex-direction:column;justify-content:center}
+#cook .sno{font-size:13px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-family:-apple-system,sans-serif;margin-bottom:14px}
+#cook .stxt{font-size:24px;line-height:1.45}
+#cook .nav{display:flex;gap:10px}
+#cook .nav button{flex:1;padding:16px;border-radius:13px;border:1px solid var(--line);background:var(--bg2);font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;font-weight:600}
+#cook .nav button.prim{background:var(--gold);color:#000;border-color:var(--gold)}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="app">
+  <header><div class="htop"><span class="em">&#x1F37D;&#xFE0F;</span><h1>Mittagsk&uuml;che</h1></div></header>
+  <main>
+    <section id="v-plan" class="view active"></section>
+    <section id="v-rec" class="view"></section>
+    <section id="v-shop" class="view"></section>
+  </main>
+</div>
+<nav>
+  <button data-v="plan" class="active"><span class="ico">&#x1F4C5;</span>Wochenplan<span class="nbadge" id="nb-plan" style="display:none"></span></button>
+  <button data-v="rec"><span class="ico">&#x1F4D6;</span>Rezepte</button>
+  <button data-v="shop"><span class="ico">&#x1F6D2;</span>Einkauf<span class="nbadge" id="nb-shop" style="display:none"></span></button>
+</nav>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+<div id="cook">
+  <div class="ch"><h3 id="cook-title"></h3><button class="mclose" onclick="closeCook()">&times;</button></div>
+  <div class="prog" id="cook-prog"></div>
+  <div class="body"><div class="sno" id="cook-sno"></div><div class="stxt" id="cook-stxt"></div></div>
+  <div class="nav"><button onclick="cookStep(-1)" id="cook-prev">&larr; Zur&uuml;ck</button><button class="prim" onclick="cookStep(1)" id="cook-next">Weiter &rarr;</button></div>
+</div>
+
+<script type="application/json" id="recipe-data">[{"id": 1, "name": "Spaghetti Bolognese", "emoji": "\ud83c\udf5d", "cat": "Pasta", "base": 4, "ings": [{"name": "Spaghetti", "amount": 400, "unit": "g"}, {"name": "Rinderhackfleisch", "amount": 500, "unit": "g"}, {"name": "Tomaten (Dose)", "amount": 400, "unit": "g"}, {"name": "Tomatenmark", "amount": 2, "unit": "EL"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Knoblauch", "amount": 2, "unit": "Zehen"}, {"name": "M\u00f6hre", "amount": 1, "unit": "Stk"}, {"name": "Oliven\u00f6l", "amount": 2, "unit": "EL"}], "steps": ["Zwiebel, Knoblauch und M\u00f6hre fein w\u00fcrfeln. Oliven\u00f6l in einem Topf erhitzen und das Gem\u00fcse darin glasig d\u00fcnsten.", "Hackfleisch zugeben und kr\u00fcmelig anbraten, bis es Farbe nimmt. Tomatenmark einr\u00fchren und kurz mitr\u00f6sten.", "Mit den gehackten Tomaten abl\u00f6schen, mit Salz, Pfeffer und etwas Zucker w\u00fcrzen. Bei kleiner Hitze 20\u201330 Min. k\u00f6cheln lassen.", "Spaghetti in reichlich Salzwasser al dente kochen, abgie\u00dfen und mit der Sauce servieren."], "nut": {"kcal": 620, "protein": 34, "fat": 22, "carbs": 68}, "time": 35, "tags": ["high-protein"]}, {"id": 2, "name": "Spaghetti Carbonara", "emoji": "\ud83c\udf5d", "cat": "Pasta", "base": 4, "ings": [{"name": "Spaghetti", "amount": 400, "unit": "g"}, {"name": "Pancetta/Speck", "amount": 150, "unit": "g"}, {"name": "Ei (Eigelb)", "amount": 4, "unit": "Stk"}, {"name": "Parmesan", "amount": 80, "unit": "g"}, {"name": "Knoblauch", "amount": 1, "unit": "Zehen"}, {"name": "Pfeffer", "amount": 1, "unit": "TL"}], "steps": ["Spaghetti in Salzwasser al dente kochen. Eine Tasse Nudelwasser aufheben.", "Speck in einer Pfanne knusprig auslassen, Knoblauch kurz mitbraten und wieder entfernen.", "Eigelb mit geriebenem Parmesan und viel Pfeffer verquirlen.", "Hei\u00dfe, abgetropfte Nudeln mit dem Speck mischen, vom Herd nehmen, Ei-K\u00e4se-Masse unterr\u00fchren. Mit etwas Nudelwasser cremig r\u00fchren \u2014 nicht mehr kochen, sonst stockt das Ei."], "nut": {"kcal": 640, "protein": 28, "fat": 28, "carbs": 66}, "time": 25, "tags": []}, {"id": 3, "name": "Paprika-Pasta", "emoji": "\ud83c\udf5d", "cat": "Pasta", "base": 4, "ings": [{"name": "Pasta", "amount": 400, "unit": "g"}, {"name": "Paprika", "amount": 3, "unit": "Stk"}, {"name": "Frischk\u00e4se", "amount": 150, "unit": "g"}, {"name": "Sahne", "amount": 100, "unit": "ml"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Knoblauch", "amount": 2, "unit": "Zehen"}, {"name": "Parmesan", "amount": 40, "unit": "g"}], "steps": ["Paprika, Zwiebel und Knoblauch klein schneiden und in etwas \u00d6l weich d\u00fcnsten.", "Mit Sahne abl\u00f6schen, Frischk\u00e4se einr\u00fchren und alles fein p\u00fcrieren. Mit Salz, Pfeffer und Paprikapulver abschmecken.", "Pasta al dente kochen und abgie\u00dfen.", "Nudeln mit der Paprikacreme mischen und mit Parmesan bestreut servieren."], "nut": {"kcal": 560, "protein": 18, "fat": 20, "carbs": 72}, "time": 25, "tags": ["vegetarisch"]}, {"id": 4, "name": "H\u00e4hnchen-Pesto-Pasta", "emoji": "\ud83c\udf3f", "cat": "Pasta", "base": 4, "ings": [{"name": "Pasta", "amount": 400, "unit": "g"}, {"name": "H\u00e4hnchenbrustfilet", "amount": 400, "unit": "g"}, {"name": "Pesto (gr\u00fcn)", "amount": 4, "unit": "EL"}, {"name": "Kirschtomaten", "amount": 200, "unit": "g"}, {"name": "Sahne", "amount": 100, "unit": "ml"}, {"name": "Parmesan", "amount": 40, "unit": "g"}], "steps": ["H\u00e4hnchen in Streifen schneiden, salzen, pfeffern und in \u00d6l goldbraun braten.", "Halbierte Kirschtomaten zugeben und kurz mitbraten.", "Pesto und Sahne einr\u00fchren, kurz erw\u00e4rmen.", "Mit den al dente gekochten Nudeln mischen und mit Parmesan servieren."], "nut": {"kcal": 640, "protein": 40, "fat": 24, "carbs": 62}, "time": 25, "tags": ["high-protein"]}, {"id": 5, "name": "Lachs-Sahne-Pasta", "emoji": "\ud83d\udc1f", "cat": "Pasta", "base": 4, "ings": [{"name": "Bandnudeln", "amount": 400, "unit": "g"}, {"name": "Lachsfilet", "amount": 300, "unit": "g"}, {"name": "Sahne", "amount": 250, "unit": "ml"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Knoblauch", "amount": 2, "unit": "Zehen"}, {"name": "Zitrone", "amount": 1, "unit": "Stk"}, {"name": "Dill", "amount": 1, "unit": "Bund"}], "steps": ["Zwiebel und Knoblauch fein w\u00fcrfeln, in Butter and\u00fcnsten.", "Lachs w\u00fcrfeln, kurz mitbraten, dann mit Sahne abl\u00f6schen.", "Mit Zitronensaft, Salz und Pfeffer w\u00fcrzen, gehackten Dill einr\u00fchren und 5 Min. k\u00f6cheln.", "Mit al dente gekochten Bandnudeln vermengen und servieren."], "nut": {"kcal": 660, "protein": 34, "fat": 28, "carbs": 68}, "time": 25, "tags": ["high-protein"]}, {"id": 6, "name": "Gnocchi in Pesto-Mozzarella-Creme", "emoji": "\ud83c\udf3f", "cat": "Pasta", "base": 4, "ings": [{"name": "Gnocchi", "amount": 500, "unit": "g"}, {"name": "Pesto (gr\u00fcn)", "amount": 4, "unit": "EL"}, {"name": "Mozzarella", "amount": 125, "unit": "g"}, {"name": "Sahne", "amount": 200, "unit": "ml"}, {"name": "Kirschtomaten", "amount": 200, "unit": "g"}, {"name": "Parmesan", "amount": 40, "unit": "g"}], "steps": ["Gnocchi nach Packung in Salzwasser garen, bis sie oben schwimmen, abgie\u00dfen.", "Sahne und Pesto in einer Pfanne erw\u00e4rmen, Mozzarella in St\u00fccken einr\u00fchren bis er schmilzt.", "Halbierte Kirschtomaten zugeben, mit Salz und Pfeffer abschmecken.", "Gnocchi unterheben und mit Parmesan servieren."], "nut": {"kcal": 580, "protein": 20, "fat": 26, "carbs": 64}, "time": 20, "tags": ["vegetarisch"]}, {"id": 7, "name": "One-Pot Tomaten-Mozzarella-Pasta", "emoji": "\ud83c\udf45", "cat": "Pasta", "base": 4, "ings": [{"name": "Pasta", "amount": 400, "unit": "g"}, {"name": "Tomaten (Dose)", "amount": 400, "unit": "g"}, {"name": "Mozzarella", "amount": 125, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Knoblauch", "amount": 2, "unit": "Zehen"}, {"name": "Gem\u00fcsebr\u00fche", "amount": 600, "unit": "ml"}, {"name": "Basilikum", "amount": 1, "unit": "Bund"}], "steps": ["Zwiebel und Knoblauch in einem gro\u00dfen Topf in \u00d6l and\u00fcnsten.", "Pasta, gehackte Tomaten und Br\u00fche zugeben und alles aufkochen.", "Bei mittlerer Hitze offen ca. 12 Min. k\u00f6cheln, bis die Pasta gar ist und die Sauce eindickt (gelegentlich r\u00fchren).", "Mozzarella zupfen, unterheben, mit Basilikum, Salz und Pfeffer abschmecken."], "nut": {"kcal": 520, "protein": 20, "fat": 14, "carbs": 78}, "time": 25, "tags": ["vegetarisch"]}, {"id": 8, "name": "K\u00e4sesp\u00e4tzle", "emoji": "\ud83e\uddc0", "cat": "Pasta", "base": 4, "ings": [{"name": "Sp\u00e4tzle", "amount": 500, "unit": "g"}, {"name": "Bergk\u00e4se (gerieben)", "amount": 200, "unit": "g"}, {"name": "Zwiebel", "amount": 2, "unit": "Stk"}, {"name": "Butter", "amount": 40, "unit": "g"}, {"name": "Schnittlauch", "amount": 1, "unit": "Bund"}], "steps": ["Zwiebeln in Ringe schneiden und in Butter langsam goldbraun r\u00f6sten.", "Sp\u00e4tzle (frisch oder nach Packung gegart) in einer Pfanne erw\u00e4rmen.", "Sp\u00e4tzle und geriebenen K\u00e4se abwechselnd schichten, durchschwenken bis der K\u00e4se F\u00e4den zieht.", "Mit R\u00f6stzwiebeln und Schnittlauch bestreut servieren."], "nut": {"kcal": 620, "protein": 24, "fat": 30, "carbs": 62}, "time": 30, "tags": ["vegetarisch"]}, {"id": 9, "name": "Gyros mit Backkartoffeln", "emoji": "\ud83e\udd59", "cat": "Fleisch", "base": 4, "ings": [{"name": "Gyrosfleisch (Schwein)", "amount": 500, "unit": "g"}, {"name": "Kartoffeln", "amount": 800, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Gyrosgew\u00fcrz", "amount": 2, "unit": "TL"}, {"name": "Tzatziki", "amount": 200, "unit": "g"}, {"name": "Oliven\u00f6l", "amount": 3, "unit": "EL"}], "steps": ["Kartoffeln in Spalten schneiden, mit \u00d6l, Salz und Paprika mischen und bei 200 \u00b0C ca. 30 Min. backen.", "Gyrosfleisch mit Gyrosgew\u00fcrz und \u00d6l marinieren.", "Zwiebelringe und Fleisch in einer hei\u00dfen Pfanne kr\u00e4ftig anbraten, bis es gut Farbe hat.", "Mit den Backkartoffeln und Tzatziki servieren."], "nut": {"kcal": 640, "protein": 42, "fat": 30, "carbs": 48}, "time": 45, "tags": ["high-protein"]}, {"id": 10, "name": "Schnitzel mit Pommes", "emoji": "\ud83c\udf56", "cat": "Fleisch", "base": 4, "ings": [{"name": "Schweineschnitzel", "amount": 4, "unit": "Stk"}, {"name": "Mehl", "amount": 50, "unit": "g"}, {"name": "Ei", "amount": 2, "unit": "Stk"}, {"name": "Paniermehl", "amount": 120, "unit": "g"}, {"name": "Pommes (TK)", "amount": 750, "unit": "g"}, {"name": "\u00d6l", "amount": 4, "unit": "EL"}], "steps": ["Pommes auf einem Blech nach Packungsangabe im Ofen backen.", "Schnitzel flach klopfen, salzen und pfeffern.", "Nacheinander in Mehl, verquirltem Ei und Paniermehl wenden.", "In reichlich hei\u00dfem \u00d6l pro Seite 2\u20133 Min. goldbraun ausbacken. Mit Pommes und Zitrone servieren."], "nut": {"kcal": 720, "protein": 42, "fat": 34, "carbs": 58}, "time": 35, "tags": ["high-protein"]}, {"id": 11, "name": "H\u00e4hnchen-Curry mit Reis", "emoji": "\ud83c\udf5b", "cat": "Fleisch", "base": 4, "ings": [{"name": "H\u00e4hnchenbrustfilet", "amount": 600, "unit": "g"}, {"name": "Kokosmilch", "amount": 400, "unit": "ml"}, {"name": "Currypaste", "amount": 2, "unit": "EL"}, {"name": "Paprika", "amount": 1, "unit": "Stk"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Basmati-Reis", "amount": 300, "unit": "g"}], "steps": ["Reis nach Packung kochen.", "H\u00e4hnchen w\u00fcrfeln und in \u00d6l scharf anbraten, herausnehmen.", "Zwiebel und Paprika and\u00fcnsten, Currypaste zugeben und kurz r\u00f6sten.", "Mit Kokosmilch abl\u00f6schen, H\u00e4hnchen zur\u00fcck in die Pfanne, 8\u201310 Min. k\u00f6cheln. Mit dem Reis servieren."], "nut": {"kcal": 620, "protein": 44, "fat": 26, "carbs": 52}, "time": 30, "tags": ["high-protein"]}, {"id": 12, "name": "Frikadellen mit Kartoffelp\u00fcree", "emoji": "\ud83e\udd69", "cat": "Fleisch", "base": 4, "ings": [{"name": "Hackfleisch (gemischt)", "amount": 500, "unit": "g"}, {"name": "Ei", "amount": 1, "unit": "Stk"}, {"name": "Br\u00f6tchen (alt)", "amount": 1, "unit": "Stk"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Kartoffeln", "amount": 800, "unit": "g"}, {"name": "Milch", "amount": 150, "unit": "ml"}, {"name": "Butter", "amount": 30, "unit": "g"}], "steps": ["Br\u00f6tchen in Wasser einweichen, ausdr\u00fccken. Mit Hack, Ei, fein gew\u00fcrfelter Zwiebel, Salz und Pfeffer verkneten.", "Frikadellen formen und in \u00d6l von beiden Seiten goldbraun braten (ca. 10 Min.).", "Kartoffeln sch\u00e4len, kochen, abgie\u00dfen. Mit warmer Milch und Butter zu P\u00fcree stampfen, salzen.", "Frikadellen mit dem P\u00fcree servieren."], "nut": {"kcal": 640, "protein": 38, "fat": 32, "carbs": 48}, "time": 40, "tags": ["high-protein"]}, {"id": 13, "name": "Geschnetzeltes mit Reis", "emoji": "\ud83c\udf5a", "cat": "Fleisch", "base": 4, "ings": [{"name": "H\u00e4hnchenbrustfilet", "amount": 500, "unit": "g"}, {"name": "Champignons", "amount": 200, "unit": "g"}, {"name": "Sahne", "amount": 200, "unit": "ml"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Basmati-Reis", "amount": 300, "unit": "g"}, {"name": "Br\u00fche", "amount": 100, "unit": "ml"}], "steps": ["Reis nach Packung kochen.", "Fleisch in Streifen schneiden, in \u00d6l scharf anbraten und herausnehmen.", "Zwiebel und Champignons in derselben Pfanne anbraten, mit Br\u00fche abl\u00f6schen.", "Sahne zugeben, Fleisch zur\u00fcckgeben, kurz k\u00f6cheln, mit Salz und Pfeffer abschmecken. Mit Reis servieren."], "nut": {"kcal": 580, "protein": 42, "fat": 22, "carbs": 48}, "time": 30, "tags": ["high-protein"]}, {"id": 14, "name": "Butter-Chicken mit Reis", "emoji": "\ud83c\udf5b", "cat": "Fleisch", "base": 4, "ings": [{"name": "H\u00e4hnchenbrustfilet", "amount": 600, "unit": "g"}, {"name": "Tomaten (passiert)", "amount": 400, "unit": "g"}, {"name": "Sahne", "amount": 200, "unit": "ml"}, {"name": "Butter", "amount": 40, "unit": "g"}, {"name": "Garam Masala", "amount": 2, "unit": "TL"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Basmati-Reis", "amount": 300, "unit": "g"}], "steps": ["Reis kochen. H\u00e4hnchen w\u00fcrfeln, salzen und in Butter anbraten, herausnehmen.", "Zwiebel in der Pfanne and\u00fcnsten, Garam Masala und etwas Ingwer/Knoblauch zugeben.", "Passierte Tomaten und Sahne einr\u00fchren, 10 Min. k\u00f6cheln lassen.", "H\u00e4hnchen zur\u00fcckgeben, kurz ziehen lassen, abschmecken. Mit Reis servieren."], "nut": {"kcal": 680, "protein": 46, "fat": 32, "carbs": 50}, "time": 35, "tags": ["high-protein"]}, {"id": 15, "name": "K\u00f6ttbullar in Champignonrahmsauce", "emoji": "\ud83c\udf56", "cat": "Fleisch", "base": 4, "ings": [{"name": "Hackfleisch (gemischt)", "amount": 500, "unit": "g"}, {"name": "Ei", "amount": 1, "unit": "Stk"}, {"name": "Paniermehl", "amount": 50, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Champignons", "amount": 200, "unit": "g"}, {"name": "Sahne", "amount": 200, "unit": "ml"}, {"name": "Br\u00fche", "amount": 150, "unit": "ml"}], "steps": ["Hack mit Ei, Paniermehl, fein gew\u00fcrfelter Zwiebel, Salz und Pfeffer verkneten und kleine B\u00e4llchen formen.", "K\u00f6ttbullar in \u00d6l rundum braun braten und herausnehmen.", "Champignons im Bratfett anbraten, mit Br\u00fche abl\u00f6schen, Sahne zugeben.", "B\u00e4llchen zur\u00fcckgeben, 5 Min. k\u00f6cheln, abschmecken. Dazu passt Kartoffelp\u00fcree oder Reis."], "nut": {"kcal": 560, "protein": 32, "fat": 36, "carbs": 20}, "time": 35, "tags": ["high-protein"]}, {"id": 16, "name": "Chili con Carne", "emoji": "\ud83c\udf36", "cat": "Fleisch", "base": 4, "ings": [{"name": "Rinderhackfleisch", "amount": 500, "unit": "g"}, {"name": "Kidneybohnen (Dose)", "amount": 400, "unit": "g"}, {"name": "Mais (Dose)", "amount": 200, "unit": "g"}, {"name": "Tomaten (Dose)", "amount": 400, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Knoblauch", "amount": 2, "unit": "Zehen"}, {"name": "Chilipulver", "amount": 1, "unit": "TL"}, {"name": "Paprikapulver", "amount": 2, "unit": "TL"}], "steps": ["Zwiebel und Knoblauch in \u00d6l and\u00fcnsten, Hack zugeben und kr\u00fcmelig braten.", "Mit Chili und Paprikapulver w\u00fcrzen, Tomatenmark kurz mitr\u00f6sten.", "Gehackte Tomaten, abgesp\u00fclte Bohnen und Mais zugeben.", "Mit Salz, Pfeffer und etwas Kreuzk\u00fcmmel abschmecken und 20\u201330 Min. k\u00f6cheln. Dazu Baguette oder Reis."], "nut": {"kcal": 480, "protein": 34, "fat": 18, "carbs": 42}, "time": 40, "tags": ["high-protein"]}, {"id": 17, "name": "Lachs mit Ofengem\u00fcse", "emoji": "\ud83d\udc1f", "cat": "Fisch", "base": 4, "ings": [{"name": "Lachsfilet", "amount": 4, "unit": "Stk"}, {"name": "Zucchini", "amount": 1, "unit": "Stk"}, {"name": "Paprika", "amount": 2, "unit": "Stk"}, {"name": "Kirschtomaten", "amount": 200, "unit": "g"}, {"name": "Oliven\u00f6l", "amount": 3, "unit": "EL"}, {"name": "Zitrone", "amount": 1, "unit": "Stk"}], "steps": ["Gem\u00fcse in mundgerechte St\u00fccke schneiden, mit \u00d6l, Salz und Pfeffer auf ein Blech geben.", "Bei 200 \u00b0C ca. 15 Min. vorbacken.", "Lachs salzen, pfeffern, mit etwas Zitronensaft betr\u00e4ufeln und auf das Gem\u00fcse legen.", "Weitere 12\u201315 Min. backen, bis der Lachs gar ist."], "nut": {"kcal": 480, "protein": 38, "fat": 28, "carbs": 16}, "time": 35, "tags": ["high-protein"]}, {"id": 18, "name": "Schlemmerfilet mit Kartoffelp\u00fcree", "emoji": "\ud83d\udc1f", "cat": "Fisch", "base": 4, "ings": [{"name": "Schlemmerfilet (TK)", "amount": 4, "unit": "Stk"}, {"name": "Kartoffeln", "amount": 800, "unit": "g"}, {"name": "Milch", "amount": 150, "unit": "ml"}, {"name": "Butter", "amount": 30, "unit": "g"}], "steps": ["Schlemmerfilets gefroren auf ein Blech legen und nach Packung bei 200 \u00b0C ca. 30\u201340 Min. backen.", "Kartoffeln sch\u00e4len, in Salzwasser weich kochen und abgie\u00dfen.", "Mit warmer Milch und Butter zu cremigem P\u00fcree stampfen, salzen.", "Filets mit dem P\u00fcree servieren, dazu passt ein Salat."], "nut": {"kcal": 520, "protein": 30, "fat": 22, "carbs": 52}, "time": 40, "tags": []}, {"id": 19, "name": "Kartoffeln und Backfisch", "emoji": "\ud83d\udc1f", "cat": "Fisch", "base": 4, "ings": [{"name": "Backfisch (TK)", "amount": 4, "unit": "Stk"}, {"name": "Kartoffeln", "amount": 800, "unit": "g"}, {"name": "Remoulade", "amount": 150, "unit": "g"}, {"name": "Zitrone", "amount": 1, "unit": "Stk"}, {"name": "\u00d6l", "amount": 3, "unit": "EL"}], "steps": ["Backfisch nach Packung im Ofen oder in der Pfanne knusprig garen.", "Kartoffeln als Salz- oder Bratkartoffeln zubereiten.", "Zitrone in Spalten schneiden.", "Backfisch mit Kartoffeln, Remoulade und Zitrone servieren."], "nut": {"kcal": 620, "protein": 28, "fat": 30, "carbs": 58}, "time": 35, "tags": []}, {"id": 20, "name": "Ofengem\u00fcse mit Feta", "emoji": "\ud83e\uddc0", "cat": "Vegetarisch", "base": 4, "ings": [{"name": "Kartoffeln", "amount": 600, "unit": "g"}, {"name": "Paprika", "amount": 2, "unit": "Stk"}, {"name": "Zucchini", "amount": 1, "unit": "Stk"}, {"name": "Kirschtomaten", "amount": 200, "unit": "g"}, {"name": "Feta", "amount": 200, "unit": "g"}, {"name": "Oliven\u00f6l", "amount": 4, "unit": "EL"}, {"name": "Knoblauch", "amount": 2, "unit": "Zehen"}], "steps": ["Gem\u00fcse und Kartoffeln in St\u00fccke schneiden, mit \u00d6l, Knoblauch, Salz, Pfeffer und Kr\u00e4utern mischen.", "Auf ein Blech geben und bei 200 \u00b0C ca. 25 Min. backen.", "Feta in W\u00fcrfeln dar\u00fcber verteilen.", "Weitere 10 Min. backen, bis alles goldbraun ist."], "nut": {"kcal": 420, "protein": 15, "fat": 24, "carbs": 40}, "time": 40, "tags": ["vegetarisch"]}, {"id": 21, "name": "Kartoffelpuffer mit Apfelmus", "emoji": "\ud83e\udd54", "cat": "Vegetarisch", "base": 4, "ings": [{"name": "Kartoffeln", "amount": 1000, "unit": "g"}, {"name": "Ei", "amount": 2, "unit": "Stk"}, {"name": "Mehl", "amount": 3, "unit": "EL"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Apfelmus", "amount": 400, "unit": "g"}, {"name": "\u00d6l", "amount": 6, "unit": "EL"}], "steps": ["Kartoffeln und Zwiebel fein reiben, gut ausdr\u00fccken.", "Mit Ei, Mehl, Salz und Pfeffer zu einem Teig vermengen.", "Portionsweise flache Puffer in hei\u00dfem \u00d6l von beiden Seiten knusprig braten.", "Auf K\u00fcchenpapier abtropfen lassen und mit Apfelmus servieren."], "nut": {"kcal": 480, "protein": 12, "fat": 18, "carbs": 68}, "time": 40, "tags": ["vegetarisch"]}, {"id": 22, "name": "Flammkuchen", "emoji": "\ud83e\uded3", "cat": "Vegetarisch", "base": 4, "ings": [{"name": "Flammkuchenteig", "amount": 2, "unit": "Stk"}, {"name": "Cr\u00e8me fra\u00eeche", "amount": 200, "unit": "g"}, {"name": "Speck (W\u00fcrfel)", "amount": 100, "unit": "g"}, {"name": "Zwiebel", "amount": 2, "unit": "Stk"}, {"name": "Schnittlauch", "amount": 1, "unit": "Bund"}], "steps": ["Backofen auf 220 \u00b0C vorheizen. Teig ausrollen.", "Cr\u00e8me fra\u00eeche mit Salz und Pfeffer verr\u00fchren und d\u00fcnn auf dem Teig verstreichen.", "Mit d\u00fcnnen Zwiebelringen und Speckw\u00fcrfeln belegen.", "Ca. 12\u201315 Min. knusprig backen, mit Schnittlauch bestreuen."], "nut": {"kcal": 440, "protein": 16, "fat": 22, "carbs": 44}, "time": 25, "tags": []}, {"id": 23, "name": "Gem\u00fcse-Reis-Pfanne", "emoji": "\ud83e\udd55", "cat": "Vegetarisch", "base": 4, "ings": [{"name": "Basmati-Reis", "amount": 300, "unit": "g"}, {"name": "Paprika", "amount": 2, "unit": "Stk"}, {"name": "Zucchini", "amount": 1, "unit": "Stk"}, {"name": "M\u00f6hre", "amount": 2, "unit": "Stk"}, {"name": "Sojasauce", "amount": 3, "unit": "EL"}, {"name": "Ei", "amount": 2, "unit": "Stk"}, {"name": "\u00d6l", "amount": 2, "unit": "EL"}], "steps": ["Reis vorkochen und abk\u00fchlen lassen (am besten vom Vortag).", "Gem\u00fcse klein schneiden und in hei\u00dfem \u00d6l knackig braten.", "Reis zugeben, mit Sojasauce w\u00fcrzen und alles gut durchbraten.", "Verquirltes Ei dar\u00fcber geben, stocken lassen und unterr\u00fchren."], "nut": {"kcal": 420, "protein": 14, "fat": 10, "carbs": 68}, "time": 25, "tags": ["vegetarisch"]}, {"id": 24, "name": "K\u00fcrbiscremesuppe", "emoji": "\ud83c\udf83", "cat": "Suppen & Eint\u00f6pfe", "base": 4, "ings": [{"name": "Hokkaido-K\u00fcrbis", "amount": 1, "unit": "Stk"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "M\u00f6hre", "amount": 2, "unit": "Stk"}, {"name": "Gem\u00fcsebr\u00fche", "amount": 1, "unit": "l"}, {"name": "Sahne", "amount": 100, "unit": "ml"}, {"name": "Ingwer", "amount": 1, "unit": "TL"}], "steps": ["K\u00fcrbis (mit Schale) und M\u00f6hren w\u00fcrfeln, Zwiebel hacken.", "Zwiebel in \u00d6l and\u00fcnsten, K\u00fcrbis und M\u00f6hren zugeben, kurz mitbraten.", "Mit Br\u00fche auff\u00fcllen und ca. 20 Min. weich kochen.", "Fein p\u00fcrieren, Sahne und Ingwer einr\u00fchren, mit Salz und Pfeffer abschmecken."], "nut": {"kcal": 220, "protein": 5, "fat": 10, "carbs": 26}, "time": 30, "tags": ["vegetarisch"]}, {"id": 25, "name": "K\u00e4se-Lauch-Suppe", "emoji": "\ud83e\uddc0", "cat": "Suppen & Eint\u00f6pfe", "base": 4, "ings": [{"name": "Hackfleisch (gemischt)", "amount": 300, "unit": "g"}, {"name": "Lauch", "amount": 2, "unit": "Stk"}, {"name": "Schmelzk\u00e4se", "amount": 200, "unit": "g"}, {"name": "Br\u00fche", "amount": 1, "unit": "l"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Sahne", "amount": 100, "unit": "ml"}], "steps": ["Zwiebel hacken, Hack in einem Topf kr\u00fcmelig anbraten.", "Lauch in Ringe schneiden, zugeben und kurz mitd\u00fcnsten.", "Mit Br\u00fche auff\u00fcllen und 10 Min. k\u00f6cheln.", "Schmelzk\u00e4se und Sahne einr\u00fchren bis cremig, mit Salz und Pfeffer abschmecken."], "nut": {"kcal": 480, "protein": 26, "fat": 32, "carbs": 16}, "time": 30, "tags": ["high-protein"]}, {"id": 26, "name": "Bauerneintopf", "emoji": "\ud83c\udf72", "cat": "Suppen & Eint\u00f6pfe", "base": 4, "ings": [{"name": "Kartoffeln", "amount": 600, "unit": "g"}, {"name": "M\u00f6hre", "amount": 3, "unit": "Stk"}, {"name": "Mettwurst", "amount": 300, "unit": "g"}, {"name": "Bohnen (Dose)", "amount": 400, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Br\u00fche", "amount": 1, "unit": "l"}], "steps": ["Zwiebel w\u00fcrfeln und in einem gro\u00dfen Topf and\u00fcnsten.", "Kartoffeln und M\u00f6hren w\u00fcrfeln, zugeben und kurz anschwitzen.", "Mit Br\u00fche auff\u00fcllen und ca. 15 Min. k\u00f6cheln, bis das Gem\u00fcse weich ist.", "Wurst in Scheiben und abgesp\u00fclte Bohnen zugeben, weitere 5 Min. ziehen lassen, abschmecken."], "nut": {"kcal": 420, "protein": 22, "fat": 18, "carbs": 44}, "time": 35, "tags": []}, {"id": 27, "name": "Thai-Curry-Suppe", "emoji": "\ud83c\udf5c", "cat": "Suppen & Eint\u00f6pfe", "base": 4, "ings": [{"name": "Kokosmilch", "amount": 400, "unit": "ml"}, {"name": "Rote Currypaste", "amount": 2, "unit": "EL"}, {"name": "H\u00e4hnchenbrustfilet", "amount": 300, "unit": "g"}, {"name": "Paprika", "amount": 1, "unit": "Stk"}, {"name": "Glasnudeln", "amount": 100, "unit": "g"}, {"name": "Br\u00fche", "amount": 500, "unit": "ml"}, {"name": "Limette", "amount": 1, "unit": "Stk"}], "steps": ["Currypaste in etwas \u00d6l anr\u00f6sten, mit Kokosmilch und Br\u00fche aufgie\u00dfen.", "H\u00e4hnchen in Streifen und Paprika in Streifen zugeben, 8 Min. k\u00f6cheln.", "Glasnudeln einlegen und garziehen lassen.", "Mit Limettensaft, etwas Fischsauce und frischem Koriander abschmecken."], "nut": {"kcal": 360, "protein": 24, "fat": 18, "carbs": 24}, "time": 25, "tags": ["high-protein"]}, {"id": 28, "name": "Gyrossuppe", "emoji": "\ud83e\udd58", "cat": "Suppen & Eint\u00f6pfe", "base": 4, "ings": [{"name": "Gyrosfleisch (Schwein)", "amount": 400, "unit": "g"}, {"name": "Schmelzk\u00e4se", "amount": 200, "unit": "g"}, {"name": "Paprika", "amount": 2, "unit": "Stk"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Br\u00fche", "amount": 1, "unit": "l"}, {"name": "Sahne", "amount": 100, "unit": "ml"}], "steps": ["Gyrosfleisch mit Zwiebeln in einem Topf kr\u00e4ftig anbraten.", "Paprika in Streifen zugeben und kurz mitbraten.", "Mit Br\u00fche auff\u00fcllen und 10 Min. k\u00f6cheln.", "Schmelzk\u00e4se und Sahne einr\u00fchren bis cremig, mit Gyrosgew\u00fcrz abschmecken."], "nut": {"kcal": 520, "protein": 30, "fat": 34, "carbs": 18}, "time": 30, "tags": ["high-protein"]}, {"id": 29, "name": "Lasagne", "emoji": "\ud83c\udf5d", "cat": "Aufl\u00e4ufe", "base": 4, "ings": [{"name": "Lasagneplatten", "amount": 250, "unit": "g"}, {"name": "Hackfleisch", "amount": 500, "unit": "g"}, {"name": "Tomaten (Dose)", "amount": 400, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Milch", "amount": 500, "unit": "ml"}, {"name": "Butter", "amount": 40, "unit": "g"}, {"name": "Mehl", "amount": 40, "unit": "g"}, {"name": "K\u00e4se (gerieben)", "amount": 100, "unit": "g"}], "steps": ["Hackfleisch mit Zwiebel anbraten, mit Tomaten abl\u00f6schen, w\u00fcrzen und 15 Min. k\u00f6cheln (Bolognese).", "F\u00fcr die B\u00e9chamel Butter schmelzen, Mehl einr\u00fchren, mit Milch aufgie\u00dfen und glatt r\u00fchren, salzen.", "Abwechselnd Bolognese, Platten und B\u00e9chamel in eine Form schichten, mit K\u00e4se abschlie\u00dfen.", "Bei 180 \u00b0C ca. 35\u201340 Min. goldbraun backen."], "nut": {"kcal": 680, "protein": 38, "fat": 34, "carbs": 52}, "time": 60, "tags": ["high-protein"]}, {"id": 30, "name": "Nudelauflauf mit Schinken", "emoji": "\ud83e\uddc0", "cat": "Aufl\u00e4ufe", "base": 4, "ings": [{"name": "Nudeln", "amount": 300, "unit": "g"}, {"name": "Kochschinken", "amount": 200, "unit": "g"}, {"name": "Sahne", "amount": 200, "unit": "ml"}, {"name": "Ei", "amount": 2, "unit": "Stk"}, {"name": "K\u00e4se (gerieben)", "amount": 100, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}], "steps": ["Nudeln al dente kochen und abgie\u00dfen.", "Sahne mit Eiern verquirlen, mit Salz, Pfeffer und Muskat w\u00fcrzen.", "Nudeln, gew\u00fcrfelten Schinken und Zwiebel in eine Form geben, Eiermasse dar\u00fcber gie\u00dfen.", "Mit K\u00e4se bestreuen und bei 180 \u00b0C ca. 25 Min. backen."], "nut": {"kcal": 580, "protein": 30, "fat": 28, "carbs": 52}, "time": 40, "tags": ["high-protein"]}, {"id": 31, "name": "H\u00e4hnchen-Mozzarella-Auflauf", "emoji": "\ud83e\uddc0", "cat": "Aufl\u00e4ufe", "base": 4, "ings": [{"name": "H\u00e4hnchenbrustfilet", "amount": 500, "unit": "g"}, {"name": "Mozzarella", "amount": 125, "unit": "g"}, {"name": "Tomaten (Dose)", "amount": 400, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Knoblauch", "amount": 2, "unit": "Zehen"}, {"name": "Cr\u00e8me fra\u00eeche", "amount": 150, "unit": "g"}], "steps": ["H\u00e4hnchen w\u00fcrfeln, salzen, pfeffern und scharf anbraten.", "Zwiebel und Knoblauch zugeben, mit Tomaten abl\u00f6schen, Cr\u00e8me fra\u00eeche einr\u00fchren, w\u00fcrzen.", "In eine Auflaufform geben und mit Mozzarella-Scheiben belegen.", "Bei 200 \u00b0C ca. 20 Min. backen, bis der K\u00e4se goldbraun ist. Dazu Reis oder Baguette."], "nut": {"kcal": 420, "protein": 44, "fat": 20, "carbs": 12}, "time": 35, "tags": ["high-protein"]}, {"id": 32, "name": "Kartoffel-Hack-Auflauf", "emoji": "\ud83e\udd54", "cat": "Aufl\u00e4ufe", "base": 4, "ings": [{"name": "Kartoffeln", "amount": 800, "unit": "g"}, {"name": "Hackfleisch", "amount": 400, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Sahne", "amount": 200, "unit": "ml"}, {"name": "K\u00e4se (gerieben)", "amount": 100, "unit": "g"}, {"name": "Ei", "amount": 1, "unit": "Stk"}], "steps": ["Kartoffeln in d\u00fcnne Scheiben hobeln. Hack mit Zwiebel anbraten und w\u00fcrzen.", "Sahne mit Ei, Salz, Pfeffer und Muskat verquirlen.", "Kartoffeln und Hack abwechselnd in eine Form schichten, Sahnemasse dar\u00fcber gie\u00dfen.", "Mit K\u00e4se bestreuen und bei 180 \u00b0C ca. 45 Min. backen."], "nut": {"kcal": 620, "protein": 32, "fat": 34, "carbs": 46}, "time": 60, "tags": ["high-protein"]}, {"id": 33, "name": "Risotto mit Pilzen und Schinken", "emoji": "\ud83c\udf5a", "cat": "Reis & Bowls", "base": 4, "ings": [{"name": "Risottoreis", "amount": 300, "unit": "g"}, {"name": "Champignons", "amount": 250, "unit": "g"}, {"name": "Kochschinken", "amount": 150, "unit": "g"}, {"name": "Zwiebel", "amount": 1, "unit": "Stk"}, {"name": "Gem\u00fcsebr\u00fche", "amount": 1, "unit": "l"}, {"name": "Parmesan", "amount": 60, "unit": "g"}, {"name": "Wei\u00dfwein", "amount": 100, "unit": "ml"}], "steps": ["Zwiebel fein w\u00fcrfeln und in Butter glasig d\u00fcnsten, Reis zugeben und kurz anschwitzen.", "Mit Wei\u00dfwein abl\u00f6schen, einkochen lassen.", "Nach und nach hei\u00dfe Br\u00fche zugie\u00dfen und unter R\u00fchren ca. 18 Min. cremig k\u00f6cheln.", "Angebratene Champignons und Schinken unterheben, Parmesan einr\u00fchren, abschmecken."], "nut": {"kcal": 520, "protein": 22, "fat": 16, "carbs": 68}, "time": 35, "tags": []}, {"id": 34, "name": "Reisbowl mit Pulled Chicken", "emoji": "\ud83c\udf71", "cat": "Reis & Bowls", "base": 4, "ings": [{"name": "H\u00e4hnchenbrustfilet", "amount": 500, "unit": "g"}, {"name": "Basmati-Reis", "amount": 300, "unit": "g"}, {"name": "BBQ-Sauce", "amount": 4, "unit": "EL"}, {"name": "Mais (Dose)", "amount": 200, "unit": "g"}, {"name": "Avocado", "amount": 1, "unit": "Stk"}, {"name": "Paprika", "amount": 1, "unit": "Stk"}], "steps": ["Reis kochen. H\u00e4hnchen mit Gew\u00fcrzen in der Pfanne garen, dann mit zwei Gabeln zerrupfen.", "Pulled Chicken mit BBQ-Sauce vermengen und kurz erw\u00e4rmen.", "Reis in Schalen verteilen.", "Mit H\u00e4hnchen, Mais, Paprika und Avocado-Scheiben anrichten."], "nut": {"kcal": 560, "protein": 42, "fat": 14, "carbs": 66}, "time": 30, "tags": ["high-protein"]}, {"id": 35, "name": "Enchiladas", "emoji": "\ud83c\udf2f", "cat": "International", "base": 4, "ings": [{"name": "Tortillas (Weizen)", "amount": 8, "unit": "Stk"}, {"name": "Hackfleisch", "amount": 500, "unit": "g"}, {"name": "Kidneybohnen (Dose)", "amount": 400, "unit": "g"}, {"name": "Tomaten (passiert)", "amount": 400, "unit": "g"}, {"name": "K\u00e4se (gerieben)", "amount": 150, "unit": "g"}, {"name": "Paprika", "amount": 1, "unit": "Stk"}], "steps": ["Hack mit Zwiebel, Paprika und Gew\u00fcrzen anbraten, abgesp\u00fclte Bohnen und etwas passierte Tomaten zugeben.", "Tortillas mit der F\u00fcllung belegen, aufrollen und in eine Auflaufform legen.", "Restliche passierte Tomaten dar\u00fcber gie\u00dfen und mit K\u00e4se bestreuen.", "Bei 200 \u00b0C ca. 20 Min. \u00fcberbacken."], "nut": {"kcal": 620, "protein": 34, "fat": 26, "carbs": 58}, "time": 40, "tags": ["high-protein"]}, {"id": 36, "name": "Pizza (selbstgemacht)", "emoji": "\ud83c\udf55", "cat": "International", "base": 4, "ings": [{"name": "Mehl (Typ 405)", "amount": 400, "unit": "g"}, {"name": "Hefe (frisch)", "amount": 1, "unit": "Stk"}, {"name": "Tomatensauce", "amount": 200, "unit": "g"}, {"name": "Mozzarella", "amount": 250, "unit": "g"}, {"name": "Salami", "amount": 100, "unit": "g"}, {"name": "Oliven\u00f6l", "amount": 2, "unit": "EL"}], "steps": ["Mehl mit Hefe, 250 ml lauwarmem Wasser, \u00d6l und Salz zu einem glatten Teig kneten, ca. 1 Std. gehen lassen.", "Teig d\u00fcnn ausrollen und auf ein Blech legen.", "Mit Tomatensauce bestreichen, mit Mozzarella und Belag belegen.", "Bei 240 \u00b0C (Ober-/Unterhitze) ca. 12\u201315 Min. backen, bis der Rand knusprig ist."], "nut": {"kcal": 640, "protein": 28, "fat": 24, "carbs": 78}, "time": 90, "tags": []}]</script>
+<script>
+"use strict";
+var RECIPES = JSON.parse(document.getElementById("recipe-data").textContent);
+var DAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+var CATS = ["Pasta","Fleisch","Fisch","Vegetarisch","Suppen & Eint\u00f6pfe","Aufl\u00e4ufe","Reis & Bowls","International"];
+
+function load(k,d){try{var v=localStorage.getItem("mk_"+k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function save(k,v){try{localStorage.setItem("mk_"+k,JSON.stringify(v));}catch(e){}}
+var plan=load("plan",{}), favs=load("favs",[]), checked=load("checked",{});
+var DEFAULT_PORTIONS=load("defport",2);
+var overrides=load("overrides",{}), customs=load("customs",{});
+
+/* effective recipe set */
+var RMAP_B={}; RECIPES.forEach(function(r){RMAP_B[String(r.id)]=r;});
+var RMAP={}, ALL=[];
+function getRecipe(id){id=String(id);return customs[id]||overrides[id]||RMAP_B[id]||null;}
+function isBuiltin(id){return !!RMAP_B[String(id)];}
+function isEdited(id){return !!overrides[String(id)];}
+function allRecipes(){var o=[];RECIPES.forEach(function(r){o.push(overrides[String(r.id)]||r);});Object.keys(customs).forEach(function(k){o.push(customs[k]);});return o;}
+function rebuildIndex(){ALL=allRecipes();RMAP={};ALL.forEach(function(r){RMAP[String(r.id)]=r;});}
+rebuildIndex();
+
+function toast(t){var e=document.getElementById("toast");e.textContent=t;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove("show");},1500);}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+function fmtAmt(a){a=Math.round(a*10)/10;return (a%1===0)?String(a):String(a).replace(".",",");}
+
+/* ---------- IndexedDB images ---------- */
+var DB=null;
+function dbOpen(cb){
+  if(DB)return cb(DB);
+  if(!window.indexedDB)return cb(null);
+  try{var rq=indexedDB.open("mittagskueche_img",1);
+    rq.onupgradeneeded=function(e){e.target.result.createObjectStore("img");};
+    rq.onsuccess=function(e){DB=e.target.result;cb(DB);};
+    rq.onerror=function(){cb(null);};
+  }catch(e){cb(null);}
+}
+function imgGet(id,cb){dbOpen(function(db){if(!db)return cb(null);try{var t=db.transaction("img","readonly").objectStore("img").get(String(id));t.onsuccess=function(){cb(t.result||null);};t.onerror=function(){cb(null);};}catch(e){cb(null);}});}
+function imgSet(id,data,cb){dbOpen(function(db){if(!db){cb&&cb(false);return;}try{var t=db.transaction("img","readwrite").objectStore("img").put(data,String(id));t.onsuccess=function(){cb&&cb(true);};t.onerror=function(){cb&&cb(false);};}catch(e){cb&&cb(false);}});}
+function imgDel(id,cb){dbOpen(function(db){if(!db){cb&&cb();return;}try{var t=db.transaction("img","readwrite").objectStore("img").delete(String(id));t.onsuccess=function(){cb&&cb();};t.onerror=function(){cb&&cb();};}catch(e){cb&&cb();}});}
+function chooseImage(cb){
+  var inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+  inp.onchange=function(){var file=inp.files&&inp.files[0];if(!file){cb(null);return;}
+    var fr=new FileReader();
+    fr.onload=function(){var img=new Image();
+      img.onload=function(){var max=1024,w=img.width,h=img.height;
+        if(w>=h&&w>max){h=Math.round(h*max/w);w=max;}else if(h>w&&h>max){w=Math.round(w*max/h);h=max;}
+        try{var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);cb(c.toDataURL("image/jpeg",0.82));}catch(e){cb(fr.result);}};
+      img.onerror=function(){cb(fr.result);};img.src=fr.result;};
+    fr.readAsDataURL(file);};
+  inp.click();
+}
+
+/* ---------- views ---------- */
+var view="plan";
+function switchView(v){view=v;
+  ["plan","rec","shop"].forEach(function(x){document.getElementById("v-"+x).classList.toggle("active",x===v);});
+  document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("active",b.dataset.v===v);});
+  if(v==="plan")renderPlan();if(v==="rec")renderRec();if(v==="shop")renderShop();}
+document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){switchView(b.dataset.v);};});
+function updateBadges(){var pc=Object.keys(plan).length;var nb=document.getElementById("nb-plan");nb.style.display=pc?"block":"none";nb.textContent=pc;
+  var items=shoppingItems(),sc=0;Object.keys(items).forEach(function(c){sc+=items[c].length;});var sb=document.getElementById("nb-shop");sb.style.display=sc?"block":"none";sb.textContent=sc;}
+
+/* ---------- PLAN ---------- */
+function planTotals(){var t={kcal:0,protein:0,fat:0,carbs:0,count:0};Object.keys(plan).forEach(function(d){var r=RMAP[String(plan[d].id)];if(!r)return;t.count++;t.kcal+=r.nut.kcal;t.protein+=r.nut.protein;t.fat+=r.nut.fat;t.carbs+=r.nut.carbs;});return t;}
+function nstat(v,k,cls){return '<div class="nstat"><div class="v '+cls+'">'+v+'</div><div class="k">'+k+'</div></div>';}
+function renderPlan(){var el=document.getElementById("v-plan"),h="",t=planTotals();
+  if(t.count){h+='<div class="lbl">N\u00e4hrwerte &middot; \u00d8 pro Mahlzeit</div><div class="wsum"><div class="t sans"><span>'+t.count+' von 7 Tagen geplant</span><span>pro Portion</span></div><div class="grid">'+
+    nstat(Math.round(t.kcal/t.count),"kcal","kc")+nstat(Math.round(t.protein/t.count)+"g","Eiwei\u00df","")+nstat(Math.round(t.fat/t.count)+"g","Fett","")+nstat(Math.round(t.carbs/t.count)+"g","Kohlenh.","")+'</div></div>';}
+  h+='<div class="lbl">Mittagessen der Woche</div>';
+  for(var i=0;i<7;i++){var e=plan[i],r=e?RMAP[String(e.id)]:null;h+='<div class="day"><div class="dname">'+DAYS[i]+'</div>';
+    if(r){h+='<button class="slot full" onclick="openSlot('+i+')"><span class="em">'+r.emoji+'</span><div class="info"><div class="nm">'+esc(r.name)+'</div><div class="mt sans"><span>&#x1F465; '+e.portions+' Port.</span><span><b>'+r.nut.kcal+'</b> kcal</span><span><b>'+r.nut.protein+'g</b> Eiwei\u00df</span></div></div></button>';}
+    else{h+='<button class="slot" onclick="openPicker('+i+')"><span class="pl">+</span></button>';}
+    h+='</div>';}
+  el.innerHTML=h;updateBadges();}
+
+/* ---------- RECIPES ---------- */
+var recFilter={q:"",cat:"",prot:false,fav:false};
+function renderRec(){var el=document.getElementById("v-rec"),h="";
+  h+='<button class="btn add" onclick="openEditor()">+ Eigenes Gericht hinzuf\u00fcgen</button>';
+  h+='<input class="search" id="rsearch" placeholder="Rezept suchen\u2026" value="'+esc(recFilter.q)+'">';
+  h+='<div class="chips"><div class="chip prot'+(recFilter.prot?" on":"")+'" onclick="toggleProt()">\u2728 Viel Eiwei\u00df</div>'+
+     '<div class="chip'+(recFilter.fav?" on":"")+'" onclick="toggleFav()">\u2605 Favoriten</div>'+
+     '<div class="chip'+(recFilter.cat===""?" on":"")+'" onclick="setCat(\'\')">Alle</div>';
+  CATS.forEach(function(c){h+='<div class="chip'+(recFilter.cat===c?" on":"")+'" onclick="setCat(\''+c.replace(/'/g,"\\'")+'\')">'+c+'</div>';});
+  h+='</div>';
+  var list=ALL.filter(function(r){
+    if(recFilter.cat&&r.cat!==recFilter.cat)return false;
+    if(recFilter.prot&&(r.tags||[]).indexOf("high-protein")<0)return false;
+    if(recFilter.fav&&favs.indexOf(r.id)<0&&favs.indexOf(String(r.id))<0)return false;
+    if(recFilter.q&&r.name.toLowerCase().indexOf(recFilter.q.toLowerCase())<0)return false;return true;});
+  list.sort(function(a,b){return a.name.localeCompare(b.name,"de");});
+  h+='<div class="sans" style="font-size:12px;color:#666;margin-bottom:10px">'+list.length+' Gerichte</div>';
+  if(!list.length)h+='<div class="empty"><div class="e">\u{1F50D}</div><div class="sans">Keine Treffer.</div></div>';
+  list.forEach(function(r){var fav=favs.indexOf(r.id)>=0||favs.indexOf(String(r.id))>=0;
+    var custom=!isBuiltin(r.id), edited=isEdited(r.id);
+    h+='<div class="rcard" onclick="openRecipe(\''+r.id+'\')"><img class="thumb" id="th-'+r.id+'" style="display:none"><span class="em" id="em-'+r.id+'">'+r.emoji+'</span><div class="info"><div class="nm">'+esc(r.name)+(custom?' <span class="tagmini">eigenes</span>':(edited?' <span class="tagmini">bearbeitet</span>':''))+'</div>'+
+       '<div class="mt sans"><span>'+r.cat+'</span><span>&#x23F1; '+r.time+' Min</span><span><b>'+r.nut.kcal+'</b> kcal</span><span><b>'+r.nut.protein+'g</b> EW</span></div></div>'+
+       '<button class="star'+(fav?" on":"")+'" onclick="event.stopPropagation();toggleStar(\''+r.id+'\')">'+(fav?"\u2605":"\u2606")+'</button></div>';});
+  el.innerHTML=h;
+  /* lazy load thumbnails */
+  list.forEach(function(r){imgGet(r.id,function(d){if(!d)return;var th=document.getElementById("th-"+r.id),em=document.getElementById("em-"+r.id);if(th){th.src=d;th.style.display="block";}if(em)em.style.display="none";});});
+  var s=document.getElementById("rsearch");s.oninput=function(){recFilter.q=s.value;var p=s.selectionStart;renderRec();var ns=document.getElementById("rsearch");ns.focus();try{ns.setSelectionRange(p,p);}catch(e){}};}
+function setCat(c){recFilter.cat=c;renderRec();}
+function toggleProt(){recFilter.prot=!recFilter.prot;renderRec();}
+function toggleFav(){recFilter.fav=!recFilter.fav;renderRec();}
+function toggleStar(id){var i=favs.indexOf(id);if(i<0)i=favs.indexOf(String(id));if(i>=0)favs.splice(i,1);else favs.push(id);save("favs",favs);if(view==="rec")renderRec();}
+
+/* ---------- DETAIL ---------- */
+var sheetState={id:null,portions:2,targetDay:null};
+function openRecipe(id,targetDay){var r=getRecipe(id);if(!r)return;
+  sheetState={id:r.id,portions:DEFAULT_PORTIONS,targetDay:(targetDay==null?null:targetDay)};
+  if(targetDay!=null&&plan[targetDay])sheetState.portions=plan[targetDay].portions;
+  renderSheet();document.getElementById("ov").classList.add("show");}
+function renderSheet(){var r=getRecipe(sheetState.id),p=sheetState.portions,f=p/r.base;
+  var tag=!isBuiltin(r.id)?' &middot; eigenes Gericht':(isEdited(r.id)?' &middot; bearbeitet':'');
+  var h='<div class="mhead"><span class="em">'+r.emoji+'</span><div class="ttl"><h2>'+esc(r.name)+'</h2><div class="sub">'+r.cat+' &middot; &#x23F1; '+r.time+' Min'+(favs.indexOf(r.id)>=0||favs.indexOf(String(r.id))>=0?' &middot; \u2605':'')+tag+'</div></div><button class="mclose" onclick="closeSheet()">&times;</button></div>';
+  h+='<div id="r-photo" class="rphoto empty"></div>';
+  h+='<div class="port"><span class="pl sans">Portionen: <b>'+p+'</b></span><button class="pbtn" onclick="changePort(-1)">&minus;</button><span class="pnum">'+p+'</span><button class="pbtn" onclick="changePort(1)">+</button></div>';
+  h+='<div class="lbl">N\u00e4hrwerte pro Portion</div><div class="nutri">'+ncard(r.nut.kcal,"kcal","kc")+ncard(r.nut.protein+"g","Eiwei\u00df","")+ncard(r.nut.fat+"g","Fett","")+ncard(r.nut.carbs+"g","Kohlenh.","")+'</div>';
+  h+='<div class="nnote sans">Gesamt f\u00fcr '+p+' Portionen: ca. '+(r.nut.kcal*p)+' kcal &middot; Werte sind Sch\u00e4tzungen</div>';
+  h+='<div class="lbl">Zutaten</div><ul class="ilist">';
+  r.ings.forEach(function(ig){h+='<li><span>'+esc(ig.name)+'</span><span class="a">'+fmtAmt(ig.amount*f)+(ig.unit?(" "+esc(ig.unit)):"")+'</span></li>';});
+  h+='</ul>';
+  if(r.steps&&r.steps.length){h+='<div class="lbl">Zubereitung</div><ul class="steps">';r.steps.forEach(function(s){h+='<li>'+esc(s)+'</li>';});h+='</ul>';}
+  h+='<div class="act">';
+  if(r.steps&&r.steps.length)h+='<button class="btn" onclick="startCook()">\u{1F468}\u200D\u{1F373} Kochmodus starten</button>';
+  if(sheetState.targetDay!=null){h+='<button class="btn ghost" onclick="assignDay('+sheetState.targetDay+')">In \u201E'+DAYS[sheetState.targetDay]+'\u201C \u00fcbernehmen</button>';}
+  else{h+='<div class="lbl" style="margin-bottom:6px">Zum Wochenplan</div><div class="daypick">';for(var i=0;i<7;i++){var setd=plan[i]&&String(plan[i].id)===String(r.id);h+='<button class="'+(setd?"set":"")+'" onclick="assignDay('+i+')">'+DAYS[i].slice(0,2)+'</button>';}h+='</div>';}
+  h+='<button class="btn ghost" onclick="editCurrent()">\u270E Gericht bearbeiten</button>';
+  h+='<button class="btn ghost" onclick="toggleStar(\''+r.id+'\');renderSheet()">'+(favs.indexOf(r.id)>=0||favs.indexOf(String(r.id))>=0?"\u2605 Favorit entfernen":"\u2606 Als Favorit merken")+'</button>';
+  h+='</div>';
+  document.getElementById("sheet").innerHTML=h;
+  loadPhoto(r.id,false);}
+function ncard(v,k,cls){return '<div class="ncard"><div class="v '+cls+'">'+v+'</div><div class="k">'+k+'</div></div>';}
+function changePort(d){sheetState.portions=Math.max(1,Math.min(12,sheetState.portions+d));DEFAULT_PORTIONS=sheetState.portions;save("defport",DEFAULT_PORTIONS);renderSheet();}
+function assignDay(i){plan[i]={id:sheetState.id,portions:sheetState.portions};save("plan",plan);closeSheet();toast(DAYS[i]+": "+getRecipe(sheetState.id).name);if(view==="plan")renderPlan();else updateBadges();}
+function closeSheet(){document.getElementById("ov").classList.remove("show");}
+document.getElementById("ov").onclick=function(e){if(e.target.id==="ov")closeSheet();};
+function editCurrent(){openEditor(sheetState.id);}
+
+/* ---------- PHOTO (detail + editor share this) ---------- */
+function loadPhoto(id){imgGet(id,function(data){var c=document.getElementById("r-photo");if(!c)return;
+  if(data){c.className="rphoto";c.onclick=null;c.innerHTML='<img src="'+data+'"><div class="pbar"><button class="btn ghost sm" onclick="changePhoto(\''+id+'\')">Foto \u00e4ndern</button><button class="btn danger sm" onclick="removePhoto(\''+id+'\')">Entfernen</button></div>';}
+  else{c.className="rphoto empty";c.onclick=function(){changePhoto(id);};c.innerHTML='<div style="font-size:30px">\u{1F4F7}</div><div>Foto hinzuf\u00fcgen</div>';}});}
+function changePhoto(id){chooseImage(function(data){if(!data)return;imgSet(id,data,function(){loadPhoto(id);if(view==="rec")renderRec();});});}
+function removePhoto(id){imgDel(id,function(){loadPhoto(id);if(view==="rec")renderRec();});}
+
+/* ---------- PICKER & SLOT ---------- */
+function openPicker(day){var h='<div class="mhead"><div class="ttl"><h2>'+DAYS[day]+'</h2><div class="sub">Gericht ausw\u00e4hlen</div></div><button class="mclose" onclick="closeSheet()">&times;</button></div>';
+  h+='<input class="search" id="psearch" placeholder="Suchen\u2026"><div id="plist"></div>';
+  document.getElementById("sheet").innerHTML=h;document.getElementById("ov").classList.add("show");
+  var s=document.getElementById("psearch");
+  function fill(){var q=s.value.toLowerCase(),hh="";var list=ALL.filter(function(r){return !q||r.name.toLowerCase().indexOf(q)>=0;});
+    var byCat={};list.forEach(function(r){(byCat[r.cat]=byCat[r.cat]||[]).push(r);});
+    CATS.forEach(function(c){if(!byCat[c])return;byCat[c].sort(function(a,b){return a.name.localeCompare(b.name,"de");});hh+='<div class="lbl">'+c+'</div>';
+      byCat[c].forEach(function(r){hh+='<div class="rcard" onclick="openRecipe(\''+r.id+'\','+day+')"><span class="em">'+r.emoji+'</span><div class="info"><div class="nm">'+esc(r.name)+'</div><div class="mt sans"><span>&#x23F1; '+r.time+' Min</span><span><b>'+r.nut.kcal+'</b> kcal</span><span><b>'+r.nut.protein+'g</b> EW</span></div></div></div>';});});
+    document.getElementById("plist").innerHTML=hh;}
+  fill();s.oninput=fill;}
+function openSlot(day){var r=RMAP[String(plan[day].id)];if(!r){clearDay(day);return;}
+  var h='<div class="mhead"><span class="em">'+r.emoji+'</span><div class="ttl"><h2>'+esc(r.name)+'</h2><div class="sub">'+DAYS[day]+' &middot; '+plan[day].portions+' Portionen</div></div><button class="mclose" onclick="closeSheet()">&times;</button></div>';
+  h+='<div class="act"><button class="btn" onclick="openRecipe(\''+r.id+'\','+day+')">Rezept ansehen &amp; kochen</button><button class="btn ghost" onclick="openPicker('+day+')">Anderes Gericht w\u00e4hlen</button><button class="btn danger" onclick="clearDay('+day+')">Vom Plan entfernen</button></div>';
+  document.getElementById("sheet").innerHTML=h;document.getElementById("ov").classList.add("show");}
+function clearDay(day){delete plan[day];save("plan",plan);closeSheet();renderPlan();}
+
+/* ---------- COOK MODE ---------- */
+var cookState={steps:[],i:0,wake:null};
+function startCook(){var r=getRecipe(sheetState.id);cookState={steps:r.steps,i:0,wake:null};document.getElementById("cook-title").textContent=r.emoji+" "+r.name;closeSheet();document.getElementById("cook").classList.add("show");
+  if(navigator.wakeLock){navigator.wakeLock.request("screen").then(function(w){cookState.wake=w;}).catch(function(){});}renderCook();}
+function renderCook(){var n=cookState.steps.length,i=cookState.i;document.getElementById("cook-prog").textContent="Schritt "+(i+1)+" von "+n;document.getElementById("cook-sno").textContent="Schritt "+(i+1);document.getElementById("cook-stxt").textContent=cookState.steps[i];document.getElementById("cook-prev").style.visibility=i===0?"hidden":"visible";document.getElementById("cook-next").textContent=(i===n-1)?"Fertig \u2713":"Weiter \u2192";}
+function cookStep(d){var n=cookState.steps.length;if(d>0&&cookState.i===n-1){closeCook();toast("Guten Appetit! \u{1F37D}\uFE0F");return;}cookState.i=Math.max(0,Math.min(n-1,cookState.i+d));renderCook();}
+function closeCook(){document.getElementById("cook").classList.remove("show");if(cookState.wake){try{cookState.wake.release();}catch(e){}cookState.wake=null;}}
+
+/* ---------- EDITOR ---------- */
+var editState=null;
+var EMOJIS=["\u{1F35D}","\u{1F356}","\u{1F357}","\u{1F41F}","\u{1F963}","\u{1F372}","\u{1F35B}","\u{1F955}","\u{1F9C0}","\u{1F954}","\u{1F35A}","\u{1F32E}","\u{1F355}","\u{1F37D}\uFE0F","\u{1F950}","\u{1F33F}"];
+function openEditor(id){
+  if(id==null||id===undefined){editState={id:"c"+Date.now(),isNew:true,builtin:false,name:"",emoji:"\u{1F37D}\uFE0F",cat:CATS[0],base:DEFAULT_PORTIONS,time:30,prot:false,ings:[{name:"",amount:0,unit:""}],steps:[""],nut:{kcal:0,protein:0,fat:0,carbs:0}};}
+  else{var r=getRecipe(id);editState={id:r.id,isNew:false,builtin:isBuiltin(r.id),name:r.name,emoji:r.emoji,cat:r.cat,base:r.base,time:r.time,prot:(r.tags||[]).indexOf("high-protein")>=0,ings:r.ings.map(function(i){return {name:i.name,amount:i.amount,unit:i.unit};}),steps:(r.steps||[]).slice(),nut:{kcal:r.nut.kcal,protein:r.nut.protein,fat:r.nut.fat,carbs:r.nut.carbs}};}
+  renderEditor();document.getElementById("ov").classList.add("show");}
+function gv(id){var e=document.getElementById(id);return e?e.value:"";}
+function gnum(id){var e=document.getElementById(id);return e?(parseFloat((e.value||"").replace(",","."))||0):0;}
+function captureEditForm(filter){var f=editState;
+  f.name=gv("e-name");f.emoji=gv("e-emoji").trim()||"\u{1F37D}\uFE0F";f.cat=gv("e-cat");
+  f.base=parseInt(gv("e-base"))||1;f.time=parseInt(gv("e-time"))||0;
+  var pc=document.getElementById("e-prot");if(pc)f.prot=pc.checked;
+  f.nut={kcal:Math.round(gnum("e-kcal")),protein:Math.round(gnum("e-pg")),fat:Math.round(gnum("e-fat")),carbs:Math.round(gnum("e-carbs"))};
+  var ings=[];document.querySelectorAll(".eing-ing").forEach(function(row){var nm=row.querySelector(".ei-name").value,am=row.querySelector(".ei-amt").value,un=row.querySelector(".ei-unit").value;if(filter&&!nm.trim())return;ings.push({name:nm,amount:parseFloat((am||"").replace(",","."))||0,unit:un});});
+  f.ings=ings.length?ings:(filter?[]:[{name:"",amount:0,unit:""}]);
+  var steps=[];document.querySelectorAll(".estep").forEach(function(t){if(filter&&!t.value.trim())return;steps.push(t.value);});
+  f.steps=steps;}
+function setEmoji(e){captureEditForm(false);editState.emoji=e;renderEditor();}
+function addIng(){captureEditForm(false);editState.ings.push({name:"",amount:0,unit:""});renderEditor();}
+function rmIng(i){captureEditForm(false);editState.ings.splice(i,1);if(!editState.ings.length)editState.ings.push({name:"",amount:0,unit:""});renderEditor();}
+function addStep(){captureEditForm(false);editState.steps.push("");renderEditor();}
+function rmStep(i){captureEditForm(false);editState.steps.splice(i,1);if(!editState.steps.length)editState.steps.push("");renderEditor();}
+function renderEditor(){var f=editState;
+  var h='<div class="mhead"><div class="ttl"><h2>'+(f.isNew?"Neues Gericht":"Gericht bearbeiten")+'</h2><div class="sub">Eigene Angaben \u2013 jederzeit \u00e4nderbar</div></div><button class="mclose" onclick="closeSheet()">&times;</button></div>';
+  h+='<div id="r-photo" class="rphoto empty"></div>';
+  h+='<div class="efld"><label>Name</label><input id="e-name" class="einp" value="'+esc(f.name)+'" placeholder="z.B. Omas Gulasch"></div>';
+  h+='<div class="erow2"><div class="efld" style="width:96px"><label>Emoji</label><input id="e-emoji" class="einp" value="'+esc(f.emoji)+'" maxlength="4"></div><div class="efld" style="flex:1"><label>Kategorie</label><select id="e-cat" class="einp">'+CATS.map(function(c){return '<option'+(c===f.cat?" selected":"")+'>'+c+'</option>';}).join("")+'</select></div></div>';
+  h+='<div class="emoji-quick">'+EMOJIS.map(function(e){return '<span onclick="setEmoji(\''+e+'\')">'+e+'</span>';}).join("")+'</div>';
+  h+='<div class="erow2"><div class="efld" style="flex:1"><label>Standard-Portionen</label><input id="e-base" class="einp" type="number" inputmode="numeric" min="1" value="'+f.base+'"></div><div class="efld" style="flex:1"><label>Zeit (Min)</label><input id="e-time" class="einp" type="number" inputmode="numeric" min="0" value="'+f.time+'"></div></div>';
+  h+='<div class="lbl">N\u00e4hrwerte pro Portion</div>';
+  h+='<div class="erow2"><div class="efld" style="flex:1"><label>kcal</label><input id="e-kcal" class="einp" type="number" inputmode="numeric" value="'+f.nut.kcal+'"></div><div class="efld" style="flex:1"><label>Eiwei\u00df (g)</label><input id="e-pg" class="einp" type="number" inputmode="numeric" value="'+f.nut.protein+'"></div></div>';
+  h+='<div class="erow2"><div class="efld" style="flex:1"><label>Fett (g)</label><input id="e-fat" class="einp" type="number" inputmode="numeric" value="'+f.nut.fat+'"></div><div class="efld" style="flex:1"><label>Kohlenh. (g)</label><input id="e-carbs" class="einp" type="number" inputmode="numeric" value="'+f.nut.carbs+'"></div></div>';
+  h+='<label class="echk"><input type="checkbox" id="e-prot"'+(f.prot?" checked":"")+'> Als proteinreich markieren (\u2728-Filter)</label>';
+  h+='<div class="lbl">Zutaten (f\u00fcr '+f.base+' Portionen)</div>';
+  f.ings.forEach(function(ig,idx){h+='<div class="eing eing-ing"><input class="einp ei-name" value="'+esc(ig.name)+'" placeholder="Zutat"><input class="einp ei-amt" inputmode="decimal" value="'+(ig.amount?fmtAmt(ig.amount):"")+'" placeholder="Menge"><input class="einp ei-unit" value="'+esc(ig.unit)+'" placeholder="Einh."><button class="ex" onclick="rmIng('+idx+')">&times;</button></div>';});
+  h+='<button class="addrow" onclick="addIng()">+ Zutat</button>';
+  h+='<div class="lbl">Zubereitung</div>';
+  f.steps.forEach(function(s,idx){h+='<div class="eing"><textarea class="einp estep" placeholder="Schritt '+(idx+1)+'\u2026">'+esc(s)+'</textarea><button class="ex" onclick="rmStep('+idx+')">&times;</button></div>';});
+  h+='<button class="addrow" onclick="addStep()">+ Schritt</button>';
+  h+='<div class="act"><button class="btn" onclick="saveRecipe()">Speichern</button>';
+  if(!f.isNew){if(f.builtin&&isEdited(f.id))h+='<button class="btn ghost" onclick="resetBuiltin('+f.id+')">Original wiederherstellen</button>';
+    if(!f.builtin)h+='<button class="btn danger" onclick="deleteCustom(\''+f.id+'\')">Gericht l\u00f6schen</button>';}
+  h+='</div>';
+  document.getElementById("sheet").innerHTML=h;
+  loadPhoto(f.id);}
+function saveRecipe(){captureEditForm(true);var f=editState;
+  if(!f.name.trim()){toast("Bitte einen Namen eingeben");return;}
+  var rec={id:f.id,name:f.name.trim(),emoji:f.emoji,cat:f.cat,base:f.base,time:f.time,
+    ings:f.ings.map(function(i){return {name:i.name.trim(),amount:i.amount,unit:(i.unit||"").trim()};}).filter(function(i){return i.name;}),
+    steps:f.steps.map(function(s){return s.trim();}).filter(Boolean),nut:f.nut,tags:f.prot?["high-protein"]:[]};
+  if(f.builtin){overrides[String(f.id)]=rec;save("overrides",overrides);}else{customs[String(f.id)]=rec;save("customs",customs);}
+  rebuildIndex();closeSheet();toast("Gespeichert");
+  if(view==="rec")renderRec();else if(view==="plan")renderPlan();
+  openRecipe(f.id);}
+function deleteCustom(id){if(!window.confirm("Dieses Gericht wirklich l\u00f6schen?"))return;
+  delete customs[id];save("customs",customs);
+  Object.keys(plan).forEach(function(d){if(String(plan[d].id)===String(id))delete plan[d];});save("plan",plan);
+  imgDel(id);rebuildIndex();closeSheet();toast("Gel\u00f6scht");if(view==="rec")renderRec();else renderPlan();}
+function resetBuiltin(id){delete overrides[String(id)];save("overrides",overrides);rebuildIndex();closeSheet();toast("Original wiederhergestellt");if(view==="rec")renderRec();openRecipe(id);}
+
+/* ---------- SHOPPING ---------- */
+var ICAT=[
+ ["Obst & Gem\u00fcse",["kartoffel","zwiebel","knoblauch","paprika","zucchini","m\u00f6hre","tomate","kirschtomaten","lauch","spinat","champignon","pilz","avocado","zitrone","limette","ingwer","k\u00fcrbis","salat","basilikum","schnittlauch","dill","apfelmus","mais","bohnen","erbsen"]],
+ ["Fleisch & Fisch",["hack","fleisch","h\u00e4hnchen","schnitzel","gyros","speck","schinken","wurst","lachs","fisch","backfisch","filet","pancetta","salami","bratwurst","medaillon"]],
+ ["Molkerei & K\u00fchl",["sahne","milch","butter","k\u00e4se","parmesan","mozzarella","feta","frischk\u00e4se","cr\u00e8me","schmand","quark","ei","schmelzk\u00e4se","bergk\u00e4se","tortellini","gnocchi","sp\u00e4tzle"]],
+ ["Vorrat & Trocken",["pasta","spaghetti","nudel","reis","mehl","paniermehl","br\u00f6tchen","tortilla","brot","kokosmilch","tomaten (dose)","tomaten (passiert)","tomatenmark","tomatensauce","pesto","sojasauce","bbq","remoulade","ketchup","mayonnaise","br\u00fche","hefe","glasnudeln","pommes","r\u00f6sti","bl\u00e4tterteig","pizzateig","flammkuchenteig","schlemmerfilet","chicken nuggets","pelmeni","risottoreis","bandnudeln","wein","\u00f6l","gew\u00fcrz","pulver","paste","masala","tzatziki","oregano","rosmarin","honig","senf","currypaste"]]
+];
+function catFor(name){var n=name.toLowerCase();for(var c=0;c<ICAT.length;c++){var ks=ICAT[c][1];for(var k=0;k<ks.length;k++)if(n.indexOf(ks[k])>=0)return ICAT[c][0];}return "Sonstiges";}
+function shoppingItems(){var agg={};Object.keys(plan).forEach(function(d){var e=plan[d],r=RMAP[String(e.id)];if(!r)return;var f=e.portions/r.base;r.ings.forEach(function(ig){var key=ig.name+"|"+ig.unit;if(!agg[key])agg[key]={name:ig.name,unit:ig.unit,amount:0,key:key};agg[key].amount+=ig.amount*f;});});
+  var byCat={};Object.keys(agg).forEach(function(k){var it=agg[k],c=catFor(it.name);(byCat[c]=byCat[c]||[]).push(it);});
+  Object.keys(byCat).forEach(function(c){byCat[c].sort(function(a,b){return a.name.localeCompare(b.name,"de");});});return byCat;}
+function renderShop(){var el=document.getElementById("v-shop"),h="",items=shoppingItems();
+  var order=["Obst & Gem\u00fcse","Fleisch & Fisch","Molkerei & K\u00fchl","Vorrat & Trocken","Sonstiges"];
+  var total=0;order.forEach(function(c){if(items[c])total+=items[c].length;});
+  if(!total){el.innerHTML='<div class="empty"><div class="e">\u{1F6D2}</div><div class="sans">Noch nichts geplant.<br>F\u00fcge im Wochenplan Gerichte hinzu \u2013 die Zutaten landen automatisch hier.</div></div>';updateBadges();return;}
+  var done=0;order.forEach(function(c){if(items[c])items[c].forEach(function(it){if(checked[it.key])done++;});});
+  h+='<div class="shead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="lbl" style="margin:0">Einkaufsliste &middot; '+done+'/'+total+'</div><button class="btn ghost sm" onclick="resetChecks()">Haken zur\u00fccksetzen</button></div>';
+  var col={"Obst & Gem\u00fcse":"#86c98a","Fleisch & Fisch":"#e88a8a","Molkerei & K\u00fchl":"#8ab6e8","Vorrat & Trocken":"#e8c87a","Sonstiges":"#888"};
+  order.forEach(function(c){if(!items[c])return;h+='<div class="scat" style="display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:50%;background:'+col[c]+'"></span>'+c+'</div>';
+    items[c].forEach(function(it){var ck=!!checked[it.key];h+='<div class="sitem'+(ck?" ck":"")+'" onclick="toggleCheck(\''+it.key.replace(/\\/g,"\\\\").replace(/'/g,"\\'")+'\')"><span class="cb'+(ck?" on":"")+'">'+(ck?"\u2713":"")+'</span><span class="sname'+(ck?" cr":"")+'">'+esc(it.name)+'</span><span class="samt">'+fmtAmt(it.amount)+(it.unit?(" "+esc(it.unit)):"")+'</span></div>';});});
+  el.innerHTML=h;updateBadges();}
+function toggleCheck(key){checked[key]=!checked[key];if(!checked[key])delete checked[key];save("checked",checked);renderShop();}
+function resetChecks(){checked={};save("checked",checked);renderShop();}
+
+renderPlan();
+</script>
+</body>
+</html>
